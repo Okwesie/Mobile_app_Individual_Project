@@ -1,0 +1,61 @@
+name: adventure_logger
+description: Adventure Logger — trail-safety and documentation app for hikers.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  provider: ^6.1.2
+
+  # Local storage
+  sqflite: ^2.3.3+1
+  path_provider: ^2.1.4
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # Camera
+  image_picker: ^1.1.2
+
+  # GPS + Geocoding
+  geolocator: ^13.0.2
+  geocoding: ^3.0.0
+
+  # Sensors (accelerometer/gyro for demo); light sensor via native channel
+  sensors_plus: ^6.1.0
+
+  # Biometrics
+  local_auth: ^2.3.0
+
+  # Notifications
+  flutter_local_notifications: ^18.0.1
+  timezone: ^0.9.4
+
+  # Text-to-Speech
+  flutter_tts: ^4.2.0
+
+  # SMS / URL Launcher
+  url_launcher: ^6.3.1
+
+  # Utilities
+  intl: ^0.19.0
+  path: ^1.9.0
+  uuid: ^4.5.1
+  permission_handler: ^11.3.1
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
