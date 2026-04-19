@@ -20,25 +20,38 @@ class DatabaseService {
 
     return openDatabase(
       path,
-      version: AppConstants.dbVersion,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
   Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE ${AppConstants.tableLog} (
-        id          INTEGER PRIMARY KEY AUTOINCREMENT,
-        title       TEXT NOT NULL,
-        notes       TEXT NOT NULL DEFAULT '',
-        photo_path  TEXT,
-        latitude    REAL,
-        longitude   REAL,
+        id            INTEGER PRIMARY KEY AUTOINCREMENT,
+        firestore_id  TEXT,
+        user_id       TEXT NOT NULL DEFAULT '',
+        title         TEXT NOT NULL,
+        notes         TEXT NOT NULL DEFAULT '',
+        photo_path    TEXT,
+        latitude      REAL,
+        longitude     REAL,
         location_name TEXT,
-        lux_reading REAL,
-        created_at  TEXT NOT NULL
+        lux_reading   REAL,
+        created_at    TEXT NOT NULL
       )
     ''');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Add new columns to existing table
+      await db.execute(
+          'ALTER TABLE ${AppConstants.tableLog} ADD COLUMN firestore_id TEXT');
+      await db.execute(
+          'ALTER TABLE ${AppConstants.tableLog} ADD COLUMN user_id TEXT NOT NULL DEFAULT \'\'');
+    }
   }
 
   Future<int> insertLog(LogEntry entry) async {
@@ -48,26 +61,6 @@ class DatabaseService {
       entry.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-  }
-
-  Future<List<LogEntry>> getAllLogs() async {
-    final db = await database;
-    final rows = await db.query(
-      AppConstants.tableLog,
-      orderBy: 'created_at DESC',
-    );
-    return rows.map(LogEntry.fromMap).toList();
-  }
-
-  Future<LogEntry?> getLogById(int id) async {
-    final db = await database;
-    final rows = await db.query(
-      AppConstants.tableLog,
-      where: 'id = ?',
-      whereArgs: [id],
-      limit: 1,
-    );
-    return rows.isEmpty ? null : LogEntry.fromMap(rows.first);
   }
 
   Future<int> updateLog(LogEntry entry) async {
@@ -80,12 +73,43 @@ class DatabaseService {
     );
   }
 
+  /// After Firestore assigns an ID, stamp it on the local row.
+  Future<void> setFirestoreId(int localId, String firestoreId) async {
+    final db = await database;
+    await db.update(
+      AppConstants.tableLog,
+      {'firestore_id': firestoreId},
+      where: 'id = ?',
+      whereArgs: [localId],
+    );
+  }
+
+  Future<List<LogEntry>> getLogsForUser(String uid) async {
+    final db = await database;
+    final rows = await db.query(
+      AppConstants.tableLog,
+      where: 'user_id = ?',
+      whereArgs: [uid],
+      orderBy: 'created_at DESC',
+    );
+    return rows.map(LogEntry.fromMap).toList();
+  }
+
   Future<int> deleteLog(int id) async {
     final db = await database;
     return db.delete(
       AppConstants.tableLog,
       where: 'id = ?',
       whereArgs: [id],
+    );
+  }
+
+  Future<void> deleteAllForUser(String uid) async {
+    final db = await database;
+    await db.delete(
+      AppConstants.tableLog,
+      where: 'user_id = ?',
+      whereArgs: [uid],
     );
   }
 

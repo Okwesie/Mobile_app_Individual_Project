@@ -1,0 +1,90 @@
+{
+  "project_info": {
+    "project_number": "482959484984",
+    "project_id": "adventure-logger-66be6",
+    "storage_bucket": "adventure-logger-66be6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:482959484984:android:559957284e16e077b85ecd",
+        "android_client_info": {
+          "package_name": "app.adventure.logger"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "482959484984-inuauqo7ngtms0dfc64rhs8fd585lt2l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.adventure.logger",
+            "certificate_hash": "339509dbeca0f4197842d2fd24fc315aa851d5b0"
+          }
+        },
+        {
+          "client_id": "482959484984-sa5qm8iv75n1q51bcugrutb7t3jnineb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-Dytm67JadBZny7GQUgSYLSRjA3TNyC4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "482959484984-sa5qm8iv75n1q51bcugrutb7t3jnineb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "482959484984-m46udknjqkgil6lab8u77ndn86c1i5re.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.calebarthur.adventureLogger"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:482959484984:android:e77684882089234cb85ecd",
+        "android_client_info": {
+          "package_name": "com.calebarthur.adventure_logger"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "482959484984-sa5qm8iv75n1q51bcugrutb7t3jnineb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-Dytm67JadBZny7GQUgSYLSRjA3TNyC4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "482959484984-sa5qm8iv75n1q51bcugrutb7t3jnineb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "482959484984-m46udknjqkgil6lab8u77ndn86c1i5re.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.calebarthur.adventureLogger"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

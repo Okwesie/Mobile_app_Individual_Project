@@ -8,6 +8,7 @@ import 'package:adventure_logger/core/services/sensor_service.dart';
 import 'package:adventure_logger/core/utils/app_theme.dart';
 import 'package:adventure_logger/features/logs/log_provider.dart';
 import 'package:adventure_logger/features/logs/widgets/lux_badge.dart';
+import 'package:adventure_logger/features/logs/widgets/log_speech_mic_button.dart';
 
 class NewLogScreen extends StatefulWidget {
   const NewLogScreen({super.key});
@@ -252,10 +253,15 @@ class _Step1Title extends StatelessWidget {
               controller: controller,
               autofocus: true,
               textCapitalization: TextCapitalization.words,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Log Title',
                 hintText: 'e.g. Summit attempt — Mt. Afadjato',
-                prefixIcon: Icon(Icons.title),
+                prefixIcon: const Icon(Icons.title),
+                suffixIcon: LogSpeechMicButton(
+                  controller: controller,
+                  longForm: false,
+                  combineWithExistingText: false,
+                ),
               ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) {
@@ -631,13 +637,18 @@ class _Step4SensorNotes extends StatelessWidget {
             controller: notesController,
             maxLines: 4,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Field Notes (optional)',
               hintText: 'Trail conditions, hazards, observations...',
               alignLabelWithHint: true,
-              prefixIcon: Padding(
+              prefixIcon: const Padding(
                 padding: EdgeInsets.only(bottom: 60),
                 child: Icon(Icons.notes),
+              ),
+              suffixIcon: LogSpeechMicButton(
+                controller: notesController,
+                longForm: true,
+                combineWithExistingText: true,
               ),
             ),
           ),

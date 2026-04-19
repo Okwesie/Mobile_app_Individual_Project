@@ -13,11 +13,18 @@ dependencies:
   # State management
   provider: ^6.1.2
 
+  # Firebase
+  firebase_core: ^3.15.2
+  firebase_auth: ^5.7.0
+  cloud_firestore: ^5.6.0
+  google_sign_in: ^6.2.2
+
   # Local storage
   sqflite: ^2.3.3+1
   path_provider: ^2.1.4
   hive: ^2.2.3
   hive_flutter: ^1.1.0
+  shared_preferences: ^2.3.3
 
   # Camera
   image_picker: ^1.1.2
@@ -26,7 +33,7 @@ dependencies:
   geolocator: ^13.0.2
   geocoding: ^3.0.0
 
-  # Sensors (accelerometer/gyro for demo); light sensor via native channel
+  # Sensors — light sensor via native channel
   sensors_plus: ^6.1.0
 
   # Biometrics
@@ -42,6 +49,10 @@ dependencies:
   # SMS / URL Launcher
   url_launcher: ^6.3.1
 
+  # UI
+  google_fonts: ^6.2.1
+  cached_network_image: ^3.4.1
+
   # Utilities
   intl: ^0.19.0
   path: ^1.9.0
@@ -49,11 +60,21 @@ dependencies:
   permission_handler: ^11.3.1
 
   cupertino_icons: ^1.0.8
+  speech_to_text: ^7.3.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  min_sdk_android: 21
+  web:
+    generate: false
 
 flutter:
   uses-material-design: true

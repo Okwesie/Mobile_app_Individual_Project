@@ -1,31 +1,36 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:adventure_logger/firebase_options.dart';
 import 'package:adventure_logger/core/services/notification_service.dart';
 import 'package:adventure_logger/core/utils/app_router.dart';
 import 'package:adventure_logger/core/utils/app_theme.dart';
+import 'package:adventure_logger/features/auth/auth_provider.dart';
 import 'package:adventure_logger/features/logs/log_provider.dart';
 import 'package:adventure_logger/features/settings/settings_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Prefer portrait orientation
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // Init notifications early so the channel exists before any are fired
   await NotificationService.instance.init();
 
-  // Init Hive settings
   final settingsProvider = SettingsProvider();
   await settingsProvider.init();
 
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider.value(value: settingsProvider),
         ChangeNotifierProvider(create: (_) => LogProvider()),
       ],

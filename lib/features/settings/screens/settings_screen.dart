@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:adventure_logger/core/utils/app_router.dart';
 import 'package:adventure_logger/core/utils/app_theme.dart';
+import 'package:adventure_logger/features/auth/auth_provider.dart';
 import 'package:adventure_logger/features/settings/settings_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -11,98 +14,231 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  late TextEditingController _contactController;
-  bool _contactEditing = false;
+  late final TextEditingController _contactCtrl;
+  bool _editingContact = false;
+  bool _contactTextSeeded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _contactCtrl = TextEditingController();
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _contactController = TextEditingController(
-      text: context.read<SettingsProvider>().emergencyContact,
-    );
+    if (!_contactTextSeeded) {
+      _contactCtrl.text = context.read<SettingsProvider>().emergencyContact;
+      _contactTextSeeded = true;
+    }
   }
 
   @override
   void dispose() {
-    _contactController.dispose();
+    _contactCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _signOut() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Sign Out?'),
+        content: const Text(
+            'You will need to sign in again to access your logs.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(
+                foregroundColor: Colors.red.shade700),
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await context.read<AuthProvider>().signOut();
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, AppRouter.login);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
     final settings = context.watch<SettingsProvider>();
+    final user = auth.user;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.only(bottom: 40),
         children: [
+          // ── Profile card ────────────────────────────────────────────
+          Container(
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: AppTheme.headerGradient,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              children: [
+                _ProfileAvatar(
+                  photoUrl: user?.photoURL,
+                  name: user?.displayName ?? 'Explorer',
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        user?.displayName ?? 'Explorer',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        user?.email ?? '',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.75),
+                          fontSize: 13,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── Emergency Contact ────────────────────────────────────────
           _SectionHeader('Emergency Contact'),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: _contactEditing
-                ? Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _contactController,
-                          keyboardType: TextInputType.phone,
-                          decoration: const InputDecoration(
-                            hintText: '+233 XX XXX XXXX',
-                            prefixIcon: Icon(Icons.phone_outlined),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: _editingContact
+                  ? Row(
+                      key: const ValueKey('editing'),
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _contactCtrl,
+                            keyboardType: TextInputType.phone,
+                            autofocus: true,
+                            decoration: const InputDecoration(
+                              hintText: '+233 XX XXX XXXX',
+                              prefixIcon: Icon(Icons.phone_outlined),
+                            ),
                           ),
-                          autofocus: true,
                         ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(Icons.check_circle,
+                              color: AppTheme.forestGreen, size: 30),
+                          onPressed: () {
+                            final number = _contactCtrl.text.trim();
+                            // Basic phone validation
+                            if (number.isNotEmpty &&
+                                !RegExp(r'^\+?[\d\s\-()]{7,15}$')
+                                    .hasMatch(number)) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'Enter a valid phone number.')),
+                              );
+                              return;
+                            }
+                            settings.setEmergencyContact(number);
+                            setState(() => _editingContact = false);
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.cancel_outlined,
+                              color: Colors.grey.shade400, size: 28),
+                          onPressed: () {
+                            _contactCtrl.text =
+                                settings.emergencyContact;
+                            setState(() => _editingContact = false);
+                          },
+                        ),
+                      ],
+                    )
+                  : Container(
+                      key: const ValueKey('display'),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2EDE8)),
                       ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        icon: const Icon(Icons.check_circle,
-                            color: AppTheme.forestGreen, size: 30),
-                        onPressed: () {
-                          settings.setEmergencyContact(
-                              _contactController.text.trim());
-                          setState(() => _contactEditing = false);
-                        },
-                      ),
-                    ],
-                  )
-                : ListTile(
-                    leading: const Icon(Icons.phone_outlined,
-                        color: AppTheme.slate),
-                    title: Text(
-                      settings.emergencyContact.isEmpty
-                          ? 'Not set'
-                          : settings.emergencyContact,
-                      style: TextStyle(
-                        color: settings.emergencyContact.isEmpty
-                            ? Colors.grey
-                            : null,
+                      child: Row(
+                        children: [
+                          const Icon(Icons.phone_outlined,
+                              color: AppTheme.slate, size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  settings.emergencyContact.isEmpty
+                                      ? 'Not set'
+                                      : settings.emergencyContact,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: settings.emergencyContact.isEmpty
+                                        ? Colors.grey
+                                        : AppTheme.deepGreen,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                const Text(
+                                  'Used for GPS coordinates SMS dispatch',
+                                  style: TextStyle(
+                                      fontSize: 12, color: AppTheme.slate),
+                                ),
+                              ],
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () =>
+                                setState(() => _editingContact = true),
+                            child: const Text('Edit'),
+                          ),
+                        ],
                       ),
                     ),
-                    subtitle:
-                        const Text('Used for SMS coordinate dispatch'),
-                    trailing: TextButton(
-                      onPressed: () => setState(() => _contactEditing = true),
-                      child: const Text('Edit'),
-                    ),
-                  ),
+            ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
+
+          // ── TTS ─────────────────────────────────────────────────────
           _SectionHeader('Text-to-Speech'),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.speed, color: AppTheme.slate, size: 18),
+                    const Icon(Icons.speed_outlined,
+                        color: AppTheme.slate, size: 18),
                     const SizedBox(width: 8),
-                    Text(
-                      'Speed: ${_rateLabel(settings.ttsRate)}',
-                      style: const TextStyle(fontSize: 14),
-                    ),
+                    Text('Reading speed: ${_rateLabel(settings.ttsRate)}',
+                        style: const TextStyle(fontSize: 14)),
                   ],
                 ),
                 Slider(
@@ -118,31 +254,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
 
-          const SizedBox(height: 8),
+          // ── Notifications ────────────────────────────────────────────
           _SectionHeader('Notifications'),
           SwitchListTile(
             secondary: const Icon(Icons.notifications_outlined,
                 color: AppTheme.slate),
             title: const Text('Save confirmations'),
-            subtitle: const Text(
-                'Show a notification when a log is saved'),
+            subtitle: const Text('Notify when a log is saved'),
             value: settings.notificationsEnabled,
             activeThumbColor: AppTheme.forestGreen,
-            activeTrackColor: AppTheme.forestGreen.withValues(alpha: 0.5),
+            activeTrackColor:
+                AppTheme.forestGreen.withValues(alpha: 0.4),
             onChanged: (v) => settings.setNotificationsEnabled(v),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
+
+          // ── About ────────────────────────────────────────────────────
           _SectionHeader('About'),
-          ListTile(
-            leading: const Icon(Icons.info_outline, color: AppTheme.slate),
-            title: const Text('Adventure Logger'),
-            subtitle: const Text('v1.0.0 · CS441 Final Project · 2026'),
+          _SettingsTile(
+            icon: Icons.info_outline,
+            title: 'Adventure Logger',
+            subtitle: 'v1.0.0 · CS441 Final Project · Ashesi University',
           ),
-          ListTile(
-            leading: const Icon(Icons.person_outline, color: AppTheme.slate),
-            title: const Text('Caleb Okwesie Arthur'),
-            subtitle: const Text('Ashesi University'),
+
+          const SizedBox(height: 24),
+
+          // ── Sign out ─────────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: OutlinedButton.icon(
+              onPressed: _signOut,
+              icon: const Icon(Icons.logout_rounded),
+              label: const Text('Sign Out'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red.shade700,
+                side: BorderSide(color: Colors.red.shade300),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+            ),
           ),
         ],
       ),
@@ -157,6 +307,56 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 }
 
+class _ProfileAvatar extends StatelessWidget {
+  final String? photoUrl;
+  final String name;
+  const _ProfileAvatar({this.photoUrl, required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    if (photoUrl != null) {
+      return ClipOval(
+        child: CachedNetworkImage(
+          imageUrl: photoUrl!,
+          width: 56,
+          height: 56,
+          fit: BoxFit.cover,
+          placeholder: (context, url) => _InitialsCircle(name: name),
+          errorWidget: (context, url, error) => _InitialsCircle(name: name),
+        ),
+      );
+    }
+    return _InitialsCircle(name: name);
+  }
+}
+
+class _InitialsCircle extends StatelessWidget {
+  final String name;
+  const _InitialsCircle({required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        color: AppTheme.amber,
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: Text(
+          name.isNotEmpty ? name[0].toUpperCase() : '?',
+          style: const TextStyle(
+            color: AppTheme.deepGreen,
+            fontWeight: FontWeight.w800,
+            fontSize: 22,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _SectionHeader extends StatelessWidget {
   final String title;
   const _SectionHeader(this.title);
@@ -164,7 +364,7 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 6),
       child: Text(
         title.toUpperCase(),
         style: const TextStyle(
@@ -174,6 +374,30 @@ class _SectionHeader extends StatelessWidget {
           letterSpacing: 1.2,
         ),
       ),
+    );
+  }
+}
+
+class _SettingsTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+
+  const _SettingsTile({
+    required this.icon,
+    required this.title,
+    this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(icon, color: AppTheme.slate),
+      title: Text(title,
+          style: TextStyle(
+            color: title == 'Not set' ? Colors.grey : null,
+          )),
+      subtitle: subtitle != null ? Text(subtitle!) : null,
     );
   }
 }

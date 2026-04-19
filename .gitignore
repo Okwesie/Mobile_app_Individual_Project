@@ -43,3 +43,5 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+# Root Android project build (e.g. Gradle problem reports) — not app output
+android/build/
