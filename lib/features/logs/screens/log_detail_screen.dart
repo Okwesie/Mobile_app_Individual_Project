@@ -22,7 +22,6 @@ class LogDetailScreen extends StatefulWidget {
 
 class _LogDetailScreenState extends State<LogDetailScreen> {
   late LogEntry _entry;
-  bool _speaking = false;
 
   @override
   void initState() {
@@ -30,17 +29,21 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
     _entry = widget.entry;
   }
 
-  Future<void> _toggleTts() async {
-    final tts = TtsService.instance;
-    if (_speaking) {
-      await tts.stop();
-      if (mounted) setState(() => _speaking = false);
-      return;
-    }
-    setState(() => _speaking = true);
+  Future<void> _startTts() async {
     final rate = context.read<SettingsProvider>().ttsRate;
-    await tts.speak(_entry.ttsText, rate: rate);
-    if (mounted) setState(() => _speaking = false);
+    await TtsService.instance.speak(_entry.ttsText, rate: rate);
+  }
+
+  Future<void> _pauseTts() async {
+    await TtsService.instance.pause();
+  }
+
+  Future<void> _resumeTts() async {
+    await TtsService.instance.resume();
+  }
+
+  Future<void> _stopTts() async {
+    await TtsService.instance.stop();
   }
 
   Future<void> _dispatchSms() async {
@@ -205,13 +208,15 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
                     spacing: 10,
                     runSpacing: 10,
                     children: [
-                      _ActionChip(
-                        icon: _speaking
-                            ? Icons.stop_circle_outlined
-                            : Icons.volume_up_outlined,
-                        label: _speaking ? 'Stop' : 'Read Aloud',
-                        color: AppTheme.forestGreen,
-                        onTap: _toggleTts,
+                      ValueListenableBuilder<TtsPlaybackState>(
+                        valueListenable: TtsService.instance.playbackState,
+                        builder: (context, state, _) => _TtsActionChips(
+                          state: state,
+                          onStart: _startTts,
+                          onPause: _pauseTts,
+                          onResume: _resumeTts,
+                          onStop: _stopTts,
+                        ),
                       ),
                       _ActionChip(
                         icon: Icons.sms_outlined,
@@ -311,6 +316,74 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _TtsActionChips extends StatelessWidget {
+  final TtsPlaybackState state;
+  final VoidCallback onStart;
+  final VoidCallback onPause;
+  final VoidCallback onResume;
+  final VoidCallback onStop;
+
+  const _TtsActionChips({
+    required this.state,
+    required this.onStart,
+    required this.onPause,
+    required this.onResume,
+    required this.onStop,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (state == TtsPlaybackState.speaking) {
+      return Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: [
+          _ActionChip(
+            icon: Icons.pause_circle_outline,
+            label: 'Pause',
+            color: AppTheme.forestGreen,
+            onTap: onPause,
+          ),
+          _ActionChip(
+            icon: Icons.stop_circle_outlined,
+            label: 'Stop',
+            color: Colors.red.shade700,
+            onTap: onStop,
+          ),
+        ],
+      );
+    }
+
+    if (state == TtsPlaybackState.paused) {
+      return Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: [
+          _ActionChip(
+            icon: Icons.play_circle_outline,
+            label: 'Resume',
+            color: AppTheme.forestGreen,
+            onTap: onResume,
+          ),
+          _ActionChip(
+            icon: Icons.stop_circle_outlined,
+            label: 'Stop',
+            color: Colors.red.shade700,
+            onTap: onStop,
+          ),
+        ],
+      );
+    }
+
+    return _ActionChip(
+      icon: Icons.volume_up_outlined,
+      label: 'Read Aloud',
+      color: AppTheme.forestGreen,
+      onTap: onStart,
     );
   }
 }
