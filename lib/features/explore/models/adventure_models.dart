@@ -5,6 +5,8 @@ class AdventurePlace {
   final String region;
   final String description;
   final String imageUrl;
+  final double latitude;
+  final double longitude;
   final List<String> highlights;
   final String bestTime;
   final String? difficulty;
@@ -16,6 +18,8 @@ class AdventurePlace {
     required this.region,
     required this.description,
     required this.imageUrl,
+    required this.latitude,
+    required this.longitude,
     required this.highlights,
     required this.bestTime,
     this.difficulty,

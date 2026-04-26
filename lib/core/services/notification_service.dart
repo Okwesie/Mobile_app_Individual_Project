@@ -23,6 +23,13 @@ class NotificationService {
 
     await _plugin.initialize(initSettings);
 
+    final androidImpl = _plugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+
+    // Android 13+ requires an explicit runtime permission grant.
+    await androidImpl?.requestNotificationsPermission();
+
     // Create Android notification channel
     const channel = AndroidNotificationChannel(
       AppConstants.notifChannelId,
@@ -31,10 +38,7 @@ class NotificationService {
       importance: Importance.high,
       enableVibration: true,
     );
-    await _plugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(channel);
+    await androidImpl?.createNotificationChannel(channel);
 
     _initialized = true;
   }

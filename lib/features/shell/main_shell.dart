@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:adventure_logger/core/utils/app_theme.dart';
 import 'package:adventure_logger/features/logs/screens/home_screen.dart';
+import 'package:adventure_logger/features/social/screens/feed_screen.dart';
 import 'package:adventure_logger/features/explore/screens/explore_screen.dart';
 import 'package:adventure_logger/features/stats/screens/stats_screen.dart';
 import 'package:adventure_logger/features/settings/screens/settings_screen.dart';
@@ -17,6 +18,7 @@ class _MainShellState extends State<MainShell> {
 
   static const _screens = [
     HomeScreen(),
+    CommunityScreen(),
     ExploreScreen(),
     StatsScreen(),
     SettingsScreen(),
@@ -37,22 +39,32 @@ class _MainShellState extends State<MainShell> {
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.map_outlined),
-            selectedIcon: Icon(Icons.map_rounded, color: AppTheme.forestGreen),
+            selectedIcon:
+                Icon(Icons.map_rounded, color: AppTheme.forestGreen),
             label: 'Logs',
           ),
           NavigationDestination(
+            icon: Icon(Icons.people_outline_rounded),
+            selectedIcon: Icon(Icons.people_rounded,
+                color: AppTheme.forestGreen),
+            label: 'Community',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.explore_outlined),
-            selectedIcon: Icon(Icons.explore_rounded, color: AppTheme.forestGreen),
+            selectedIcon: Icon(Icons.explore_rounded,
+                color: AppTheme.forestGreen),
             label: 'Explore',
           ),
           NavigationDestination(
             icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart_rounded, color: AppTheme.forestGreen),
+            selectedIcon: Icon(Icons.bar_chart_rounded,
+                color: AppTheme.forestGreen),
             label: 'Stats',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings_rounded, color: AppTheme.forestGreen),
+            selectedIcon: Icon(Icons.settings_rounded,
+                color: AppTheme.forestGreen),
             label: 'Settings',
           ),
         ],

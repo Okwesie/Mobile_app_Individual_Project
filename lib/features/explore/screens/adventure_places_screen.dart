@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:adventure_logger/core/utils/app_theme.dart';
 import 'package:adventure_logger/features/explore/models/adventure_models.dart';
+import 'package:adventure_logger/features/explore/screens/adventure_place_detail_screen.dart';
 
 class AdventurePlacesScreen extends StatelessWidget {
   final AdventureCategory category;
@@ -19,7 +20,10 @@ class AdventurePlacesScreen extends StatelessWidget {
             pinned: true,
             backgroundColor: category.color,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: Colors.white,
+              ),
               onPressed: () => Navigator.pop(context),
             ),
             flexibleSpace: FlexibleSpaceBar(
@@ -30,8 +34,10 @@ class AdventurePlacesScreen extends StatelessWidget {
                   CachedNetworkImage(
                     imageUrl: category.imageUrl,
                     fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(color: category.color),
-                    errorWidget: (context, url, error) => Container(color: category.color),
+                    placeholder: (context, url) =>
+                        Container(color: category.color),
+                    errorWidget: (context, url, error) =>
+                        Container(color: category.color),
                   ),
                   Container(
                     decoration: BoxDecoration(
@@ -61,7 +67,11 @@ class AdventurePlacesScreen extends StatelessWidget {
                                 color: Colors.white.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: Icon(category.icon, color: Colors.white, size: 20),
+                              child: Icon(
+                                category.icon,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                             ),
                             const SizedBox(width: 10),
                             Text(
@@ -77,7 +87,10 @@ class AdventurePlacesScreen extends StatelessWidget {
                         const SizedBox(height: 6),
                         Text(
                           category.tagline,
-                          style: const TextStyle(color: Colors.white70, fontSize: 13),
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                          ),
                         ),
                       ],
                     ),
@@ -161,11 +174,19 @@ class _PlaceCardState extends State<_PlaceCard> {
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
                       color: color.withValues(alpha: 0.15),
-                      child: Icon(Icons.image_outlined, color: color.withValues(alpha: 0.4), size: 48),
+                      child: Icon(
+                        Icons.image_outlined,
+                        color: color.withValues(alpha: 0.4),
+                        size: 48,
+                      ),
                     ),
                     errorWidget: (context, url, error) => Container(
                       color: color.withValues(alpha: 0.15),
-                      child: Icon(Icons.terrain_rounded, color: color.withValues(alpha: 0.4), size: 48),
+                      child: Icon(
+                        Icons.terrain_rounded,
+                        color: color.withValues(alpha: 0.4),
+                        size: 48,
+                      ),
                     ),
                   ),
                   // Region badge
@@ -173,7 +194,10 @@ class _PlaceCardState extends State<_PlaceCard> {
                     top: 12,
                     left: 12,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black54,
                         borderRadius: BorderRadius.circular(20),
@@ -181,7 +205,11 @@ class _PlaceCardState extends State<_PlaceCard> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.location_on_outlined, size: 12, color: Colors.white),
+                          const Icon(
+                            Icons.location_on_outlined,
+                            size: 12,
+                            color: Colors.white,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             place.region,
@@ -201,7 +229,10 @@ class _PlaceCardState extends State<_PlaceCard> {
                       top: 12,
                       right: 12,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
                           color: _difficultyColor(place.difficulty!),
                           borderRadius: BorderRadius.circular(20),
@@ -239,7 +270,9 @@ class _PlaceCardState extends State<_PlaceCard> {
 
                   // Description
                   Text(
-                    _expanded ? place.description : _truncate(place.description, 120),
+                    _expanded
+                        ? place.description
+                        : _truncate(place.description, 120),
                     style: const TextStyle(
                       fontSize: 13.5,
                       color: Color(0xFF4A5568),
@@ -323,7 +356,11 @@ class _PlaceCardState extends State<_PlaceCard> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(Icons.lightbulb_outline_rounded, size: 16, color: color),
+                          Icon(
+                            Icons.lightbulb_outline_rounded,
+                            size: 16,
+                            color: color,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -340,6 +377,24 @@ class _PlaceCardState extends State<_PlaceCard> {
                       ),
                     ),
                   ],
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AdventurePlaceDetailScreen(
+                            place: place,
+                            accentColor: color,
+                          ),
+                        ),
+                      ),
+                      icon: const Icon(Icons.map_outlined),
+                      label: const Text('View details & directions'),
+                      style: FilledButton.styleFrom(backgroundColor: color),
+                    ),
+                  ),
                 ],
               ),
             ),

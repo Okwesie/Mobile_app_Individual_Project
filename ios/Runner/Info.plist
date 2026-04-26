@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Adventure Logger</string>
+	<string>AdventureLog</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -48,9 +48,13 @@
 		</dict>
 	</dict>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Adventure Logger uses the microphone to convert your speech into log titles and notes.</string>
+	<string>AdventureLog uses the microphone to convert your speech into log titles and notes.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>AdventureLog uses your location to show distance and directions to Ghana adventure destinations.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Adventure Logger uses speech recognition to fill in your trail log without typing.</string>
+	<string>AdventureLog uses speech recognition to fill in your trail log without typing.</string>
+	<key>GoogleMapsApiKey</key>
+	<string>$(GOOGLE_MAPS_API_KEY)</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

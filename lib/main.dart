@@ -9,6 +9,7 @@ import 'package:adventure_logger/core/utils/app_theme.dart';
 import 'package:adventure_logger/features/auth/auth_provider.dart';
 import 'package:adventure_logger/features/logs/log_provider.dart';
 import 'package:adventure_logger/features/settings/settings_provider.dart';
+import 'package:adventure_logger/features/social/social_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +34,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider.value(value: settingsProvider),
         ChangeNotifierProvider(create: (_) => LogProvider()),
+        ChangeNotifierProvider(create: (_) => CommunityProvider()),
       ],
       child: const AdventureLoggerApp(),
     ),
@@ -45,7 +47,7 @@ class AdventureLoggerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Adventure Logger',
+      title: 'AdventureLog',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
       initialRoute: AppRouter.splash,

@@ -5,6 +5,7 @@ import 'package:adventure_logger/core/utils/app_router.dart';
 import 'package:adventure_logger/core/utils/app_theme.dart';
 import 'package:adventure_logger/features/auth/auth_provider.dart';
 import 'package:adventure_logger/features/settings/settings_provider.dart';
+import 'package:adventure_logger/features/social/screens/profile_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -121,6 +122,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
+
+          // ── Community Profile ────────────────────────────────────────
+          _SectionHeader('Community'),
+          ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppTheme.forestGreen.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.person_outline_rounded,
+                  color: AppTheme.forestGreen),
+            ),
+            title: const Text('Your Community Profile'),
+            subtitle: const Text('Edit bio, view shared logs'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ProfileScreen(),
+              ),
+            ),
+          ),
+          const Divider(height: 1, indent: 16),
 
           // ── Emergency Contact ────────────────────────────────────────
           _SectionHeader('Emergency Contact'),
@@ -274,7 +300,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _SectionHeader('About'),
           _SettingsTile(
             icon: Icons.info_outline,
-            title: 'Adventure Logger',
+            title: 'AdventureLog',
             subtitle: 'v1.0.0 · CS441 Final Project · Ashesi University',
           ),
 

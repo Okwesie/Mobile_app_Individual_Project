@@ -1,15 +1,64 @@
 rules_version = '2';
 
 // Deploy: firebase deploy --only firestore:rules
-// Console: Firebase → Firestore → Rules (paste or sync from repo)
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Everything under users/{uid}/... belongs to that signed-in user only.
-    match /users/{userId}/{document=**} {
+    // User profiles — any signed-in user can read, only owner can write
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Private logs — owner only
+    match /users/{userId}/logs/{logId} {
       allow read, write: if request.auth != null
           && request.auth.uid == userId;
+    }
+
+    // Community public feed
+    match /public_logs/{logId} {
+      allow read: if request.auth != null;
+      // Author can create their own entries
+      allow create: if request.auth != null
+          && request.resource.data.authorUid == request.auth.uid
+          && request.resource.data.reactionCount is int
+          && request.resource.data.reactionCount >= 0
+          && !request.resource.data.keys().hasAny(['locationName', 'latitude', 'longitude']);
+      // Author can update content while preserving authorUid; anyone can toggle reactionCount by one.
+      allow update: if request.auth != null
+          && (
+            (
+              resource.data.authorUid == request.auth.uid
+              && request.resource.data.authorUid == resource.data.authorUid
+              && request.resource.data.reactionCount is int
+              && request.resource.data.reactionCount >= 0
+              && !request.resource.data.keys().hasAny(['locationName', 'latitude', 'longitude'])
+            )
+            || (
+              request.resource.data.diff(resource.data)
+                .affectedKeys().hasOnly(['reactionCount'])
+              && request.resource.data.reactionCount is int
+              && request.resource.data.reactionCount >= 0
+              && (
+                request.resource.data.reactionCount == resource.data.reactionCount + 1
+                || request.resource.data.reactionCount == resource.data.reactionCount - 1
+              )
+            )
+          );
+      // Author can delete
+      allow delete: if request.auth != null
+          && resource.data.authorUid == request.auth.uid;
+    }
+
+    // Reactions subcollection — read by all, write own reaction only
+    match /public_logs/{logId}/reactions/{uid} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null
+          && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['reactedAt']);
+      allow delete: if request.auth != null && request.auth.uid == uid;
     }
 
     match /{document=**} {

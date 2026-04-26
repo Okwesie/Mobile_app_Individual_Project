@@ -34,6 +34,7 @@ class _EditLogScreenState extends State<EditLogScreen> {
   bool _loadingLux = false;
 
   bool _saving = false;
+  late String _visibility;
 
   @override
   void initState() {
@@ -42,6 +43,7 @@ class _EditLogScreenState extends State<EditLogScreen> {
     _titleCtrl = TextEditingController(text: e.title);
     _notesCtrl = TextEditingController(text: e.notes);
     _photoPath = e.photoPath;
+    _visibility = e.visibility;
 
     // Pre-populate location from existing entry
     if (e.latitude != null && e.longitude != null) {
@@ -52,6 +54,38 @@ class _EditLogScreenState extends State<EditLogScreen> {
       );
     }
     _luxReading = e.luxReading;
+  }
+
+  void _setVisibility(String v) {
+    if (v == 'public' && _visibility != 'public') {
+      showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Make this log public?'),
+          content: const Text(
+            'Your exact GPS coordinates and location name will not be shown in Community. Your photo, title, notes, light reading, and profile name will be visible to signed-in users. Avoid sharing phone numbers, home addresses, live location details, or anything sensitive in your notes/photo.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(context);
+                setState(() => _visibility = 'public');
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF2D6A4F),
+              ),
+              child: const Text('Make Public'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      setState(() => _visibility = v);
+    }
   }
 
   @override
@@ -72,9 +106,9 @@ class _EditLogScreenState extends State<EditLogScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Camera error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Camera error: $e')));
       }
     }
   }
@@ -90,9 +124,9 @@ class _EditLogScreenState extends State<EditLogScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gallery error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gallery error: $e')));
       }
     }
   }
@@ -136,6 +170,7 @@ class _EditLogScreenState extends State<EditLogScreen> {
       longitude: _location?.longitude,
       locationName: _location?.locationName,
       luxReading: _luxReading,
+      visibility: _visibility,
     );
 
     final ok = await context.read<LogProvider>().updateLog(updated);
@@ -156,8 +191,9 @@ class _EditLogScreenState extends State<EditLogScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final condition =
-        _luxReading != null ? SensorService.classify(_luxReading!) : null;
+    final condition = _luxReading != null
+        ? SensorService.classify(_luxReading!)
+        : null;
 
     return Scaffold(
       appBar: AppBar(
@@ -168,9 +204,10 @@ class _EditLogScreenState extends State<EditLogScreen> {
             child: const Text(
               'Save',
               style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16),
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
             ),
           ),
         ],
@@ -234,7 +271,8 @@ class _EditLogScreenState extends State<EditLogScreen> {
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: AppTheme.forestGreen,
                                 side: const BorderSide(
-                                    color: AppTheme.forestGreen),
+                                  color: AppTheme.forestGreen,
+                                ),
                               ),
                             ),
                           ),
@@ -243,13 +281,11 @@ class _EditLogScreenState extends State<EditLogScreen> {
                             child: OutlinedButton.icon(
                               onPressed: () =>
                                   setState(() => _photoRemoved = true),
-                              icon: const Icon(Icons.delete_outline,
-                                  size: 18),
+                              icon: const Icon(Icons.delete_outline, size: 18),
                               label: const Text('Remove'),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.red.shade700,
-                                side: BorderSide(
-                                    color: Colors.red.shade300),
+                                side: BorderSide(color: Colors.red.shade300),
                               ),
                             ),
                           ),
@@ -266,10 +302,8 @@ class _EditLogScreenState extends State<EditLogScreen> {
                           label: const Text('Camera'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppTheme.forestGreen,
-                            side: const BorderSide(
-                                color: AppTheme.forestGreen),
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 14),
+                            side: const BorderSide(color: AppTheme.forestGreen),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                         ),
                       ),
@@ -281,10 +315,8 @@ class _EditLogScreenState extends State<EditLogScreen> {
                           label: const Text('Gallery'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppTheme.forestGreen,
-                            side: const BorderSide(
-                                color: AppTheme.forestGreen),
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 14),
+                            side: const BorderSide(color: AppTheme.forestGreen),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                         ),
                       ),
@@ -309,8 +341,11 @@ class _EditLogScreenState extends State<EditLogScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.check_circle,
-                            color: Color(0xFF388E3C), size: 16),
+                        const Icon(
+                          Icons.check_circle,
+                          color: Color(0xFF388E3C),
+                          size: 16,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -328,7 +363,9 @@ class _EditLogScreenState extends State<EditLogScreen> {
                       '${_location!.latitude.toStringAsFixed(6)}, '
                       '${_location!.longitude.toStringAsFixed(6)}',
                       style: const TextStyle(
-                          fontSize: 12, color: Color(0xFF388E3C)),
+                        fontSize: 12,
+                        color: Color(0xFF388E3C),
+                      ),
                     ),
                   ],
                 ),
@@ -342,8 +379,10 @@ class _EditLogScreenState extends State<EditLogScreen> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.red.shade200),
                 ),
-                child: Text(_locationError!,
-                    style: TextStyle(color: Colors.red.shade700)),
+                child: Text(
+                  _locationError!,
+                  style: TextStyle(color: Colors.red.shade700),
+                ),
               ),
               const SizedBox(height: 8),
             ],
@@ -354,11 +393,14 @@ class _EditLogScreenState extends State<EditLogScreen> {
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white))
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
                   : const Icon(Icons.my_location),
-              label: Text(_location == null
-                  ? 'Get Current Location'
-                  : 'Refresh Location'),
+              label: Text(
+                _location == null ? 'Get Current Location' : 'Refresh Location',
+              ),
             ),
 
             const SizedBox(height: 24),
@@ -378,11 +420,15 @@ class _EditLogScreenState extends State<EditLogScreen> {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.light_mode_outlined,
-                          color: AppTheme.forestGreen),
+                      const Icon(
+                        Icons.light_mode_outlined,
+                        color: AppTheme.forestGreen,
+                      ),
                       const SizedBox(width: 8),
-                      const Text('Ambient light reading',
-                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      const Text(
+                        'Ambient light reading',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
                       const Spacer(),
                       if (_luxReading != null && _luxReading! >= 0)
                         LuxBadge(lux: _luxReading!),
@@ -396,25 +442,30 @@ class _EditLogScreenState extends State<EditLogScreen> {
                       _luxReading! < 0
                           ? 'Sensor not available.'
                           : '${_luxReading!.toStringAsFixed(1)} lux — '
-                              '${SensorService.conditionLabel(condition!)}. '
-                              '${SensorService.safetyAdvice(condition)}',
+                                '${SensorService.conditionLabel(condition!)}. '
+                                '${SensorService.safetyAdvice(condition)}',
                       style: const TextStyle(
-                          fontSize: 13, color: AppTheme.slate),
+                        fontSize: 13,
+                        color: AppTheme.slate,
+                      ),
                     )
                   else
-                    const Text('No sensor reading recorded.',
-                        style: TextStyle(color: AppTheme.slate)),
+                    const Text(
+                      'No sensor reading recorded.',
+                      style: TextStyle(color: AppTheme.slate),
+                    ),
                   const SizedBox(height: 10),
                   OutlinedButton.icon(
                     onPressed: _loadingLux ? null : _readLux,
                     icon: const Icon(Icons.sensors, size: 18),
-                    label: Text(_luxReading == null
-                        ? 'Read Light Sensor'
-                        : 'Re-read Sensor'),
+                    label: Text(
+                      _luxReading == null
+                          ? 'Read Light Sensor'
+                          : 'Re-read Sensor',
+                    ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppTheme.forestGreen,
-                      side:
-                          const BorderSide(color: AppTheme.forestGreen),
+                      side: const BorderSide(color: AppTheme.forestGreen),
                     ),
                   ),
                 ],
@@ -441,6 +492,41 @@ class _EditLogScreenState extends State<EditLogScreen> {
               ),
             ),
 
+            const SizedBox(height: 24),
+
+            // ── Visibility ────────────────────────────────────────────
+            _SectionLabel('Visibility'),
+            const SizedBox(height: 8),
+            SegmentedButton<String>(
+              segments: const [
+                ButtonSegment(
+                  value: 'private',
+                  label: Text('Private'),
+                  icon: Icon(Icons.lock_outline, size: 16),
+                ),
+                ButtonSegment(
+                  value: 'public',
+                  label: Text('Public'),
+                  icon: Icon(Icons.public_rounded, size: 16),
+                ),
+              ],
+              selected: {_visibility},
+              onSelectionChanged: (s) => _setVisibility(s.first),
+              style: SegmentedButton.styleFrom(
+                selectedBackgroundColor: AppTheme.forestGreen,
+                selectedForegroundColor: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Public posts hide GPS/location names, but your photo and notes are shared. Keep sensitive details out.',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppTheme.slate,
+                height: 1.35,
+              ),
+            ),
+
             const SizedBox(height: 32),
 
             // ── Save button ───────────────────────────────────────────
@@ -451,11 +537,15 @@ class _EditLogScreenState extends State<EditLogScreen> {
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white))
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
                   : const Icon(Icons.save_outlined),
               label: Text(_saving ? 'Saving...' : 'Save Changes'),
               style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16)),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
             ),
             const SizedBox(height: 40),
           ],

@@ -50,3 +50,6 @@ android/build/
 lib/firebase_options.dart
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
+
+# Google Maps API keys — keep local only
+ios/Flutter/MapsApiKey.xcconfig

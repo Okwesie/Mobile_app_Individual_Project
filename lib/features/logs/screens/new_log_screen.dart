@@ -9,6 +9,7 @@ import 'package:adventure_logger/core/utils/app_theme.dart';
 import 'package:adventure_logger/features/logs/log_provider.dart';
 import 'package:adventure_logger/features/logs/widgets/lux_badge.dart';
 import 'package:adventure_logger/features/logs/widgets/log_speech_mic_button.dart';
+import 'package:adventure_logger/features/settings/settings_provider.dart';
 
 class NewLogScreen extends StatefulWidget {
   const NewLogScreen({super.key});
@@ -40,6 +41,39 @@ class _NewLogScreenState extends State<NewLogScreen> {
   final _notesController = TextEditingController();
 
   bool _saving = false;
+  String _visibility = 'private';
+
+  void _setVisibility(String v) {
+    if (v == 'public') {
+      showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Make this log public?'),
+          content: const Text(
+            'Your exact GPS coordinates and location name will not be shown in Community. Your photo, title, notes, light reading, and profile name will be visible to signed-in users. Avoid sharing phone numbers, home addresses, live location details, or anything sensitive in your notes/photo.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(context);
+                setState(() => _visibility = 'public');
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: AppTheme.forestGreen,
+              ),
+              child: const Text('Make Public'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      setState(() => _visibility = v);
+    }
+  }
 
   @override
   void dispose() {
@@ -76,8 +110,10 @@ class _NewLogScreenState extends State<NewLogScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Camera error: $e'),
-              behavior: SnackBarBehavior.floating),
+          SnackBar(
+            content: Text('Camera error: $e'),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     }
@@ -90,8 +126,10 @@ class _NewLogScreenState extends State<NewLogScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gallery error: $e'),
-              behavior: SnackBarBehavior.floating),
+          SnackBar(
+            content: Text('Gallery error: $e'),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     }
@@ -135,9 +173,11 @@ class _NewLogScreenState extends State<NewLogScreen> {
       locationName: _location?.locationName,
       luxReading: _luxReading,
       createdAt: DateTime.now(),
+      visibility: _visibility,
     );
 
-    final ok = await context.read<LogProvider>().saveLog(entry);
+    final notify = context.read<SettingsProvider>().notificationsEnabled;
+    final ok = await context.read<LogProvider>().saveLog(entry, notify: notify);
     if (!mounted) return;
 
     if (ok) {
@@ -161,10 +201,7 @@ class _NewLogScreenState extends State<NewLogScreen> {
         title: const Text('New Verified Log'),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4),
-          child: _StepProgressBar(
-            current: _currentStep,
-            total: _totalSteps,
-          ),
+          child: _StepProgressBar(current: _currentStep, total: _totalSteps),
         ),
       ),
       body: PageView(
@@ -200,6 +237,8 @@ class _NewLogScreenState extends State<NewLogScreen> {
             onReadLux: _readLux,
             onSave: _save,
             saving: _saving,
+            visibility: _visibility,
+            onVisibilityChanged: _setVisibility,
           ),
         ],
       ),
@@ -322,8 +361,7 @@ class _Step2Camera extends StatelessWidget {
               onPressed: onRemove,
               icon: const Icon(Icons.close, size: 18),
               label: const Text('Remove photo'),
-              style: TextButton.styleFrom(
-                  foregroundColor: Colors.red.shade700),
+              style: TextButton.styleFrom(foregroundColor: Colors.red.shade700),
             ),
           ] else ...[
             Container(
@@ -332,11 +370,15 @@ class _Step2Camera extends StatelessWidget {
                 color: const Color(0xFFE8F0E0),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                    color: AppTheme.forestGreen.withValues(alpha: 0.3)),
+                  color: AppTheme.forestGreen.withValues(alpha: 0.3),
+                ),
               ),
               child: const Center(
-                child: Icon(Icons.image_outlined,
-                    size: 56, color: AppTheme.slate),
+                child: Icon(
+                  Icons.image_outlined,
+                  size: 56,
+                  color: AppTheme.slate,
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -429,11 +471,12 @@ class _Step3Gps extends StatelessWidget {
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white),
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
                   )
                 : const Icon(Icons.my_location),
-            label:
-                Text(location == null ? 'Get Current Location' : 'Refresh'),
+            label: Text(location == null ? 'Get Current Location' : 'Refresh'),
           ),
           const SizedBox(height: 32),
           _NextButton(
@@ -466,8 +509,11 @@ class _LocationCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.check_circle,
-                  color: Color(0xFF388E3C), size: 18),
+              const Icon(
+                Icons.check_circle,
+                color: Color(0xFF388E3C),
+                size: 18,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -484,8 +530,7 @@ class _LocationCard extends StatelessWidget {
           Text(
             '${location.latitude.toStringAsFixed(6)}, '
             '${location.longitude.toStringAsFixed(6)}',
-            style: const TextStyle(
-                fontSize: 12, color: Color(0xFF388E3C)),
+            style: const TextStyle(fontSize: 12, color: Color(0xFF388E3C)),
           ),
         ],
       ),
@@ -497,8 +542,11 @@ class _PendingCard extends StatelessWidget {
   final IconData icon;
   final String message;
   final bool isError;
-  const _PendingCard(
-      {required this.icon, required this.message, this.isError = false});
+  const _PendingCard({
+    required this.icon,
+    required this.message,
+    this.isError = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -507,24 +555,18 @@ class _PendingCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isError
-            ? Colors.red.shade50
-            : const Color(0xFFF4F6F0),
+        color: isError ? Colors.red.shade50 : const Color(0xFFF4F6F0),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-            color: isError
-                ? Colors.red.shade200
-                : const Color(0xFFCCCCCC)),
+          color: isError ? Colors.red.shade200 : const Color(0xFFCCCCCC),
+        ),
       ),
       child: Row(
         children: [
           Icon(icon, color: color, size: 28),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              message,
-              style: TextStyle(color: color, fontSize: 14),
-            ),
+            child: Text(message, style: TextStyle(color: color, fontSize: 14)),
           ),
         ],
       ),
@@ -541,6 +583,8 @@ class _Step4SensorNotes extends StatelessWidget {
   final VoidCallback onReadLux;
   final Future<void> Function() onSave;
   final bool saving;
+  final String visibility;
+  final ValueChanged<String> onVisibilityChanged;
 
   const _Step4SensorNotes({
     required this.luxReading,
@@ -549,12 +593,15 @@ class _Step4SensorNotes extends StatelessWidget {
     required this.onReadLux,
     required this.onSave,
     required this.saving,
+    required this.visibility,
+    required this.onVisibilityChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    final condition =
-        luxReading != null ? SensorService.classify(luxReading!) : null;
+    final condition = luxReading != null
+        ? SensorService.classify(luxReading!)
+        : null;
 
     return _StepWrapper(
       step: 4,
@@ -577,8 +624,10 @@ class _Step4SensorNotes extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.light_mode_outlined,
-                        color: AppTheme.forestGreen),
+                    const Icon(
+                      Icons.light_mode_outlined,
+                      color: AppTheme.forestGreen,
+                    ),
                     const SizedBox(width: 8),
                     const Text(
                       'Light Sensor',
@@ -596,7 +645,7 @@ class _Step4SensorNotes extends StatelessWidget {
                     luxReading! < 0
                         ? 'Sensor not available on this device.'
                         : '${luxReading!.toStringAsFixed(1)} lux  —  '
-                            '${SensorService.conditionLabel(condition!)}',
+                              '${SensorService.conditionLabel(condition!)}',
                     style: const TextStyle(fontSize: 15),
                   ),
                   const SizedBox(height: 4),
@@ -604,8 +653,7 @@ class _Step4SensorNotes extends StatelessWidget {
                     condition != null
                         ? SensorService.safetyAdvice(condition)
                         : '',
-                    style: const TextStyle(
-                        fontSize: 12, color: AppTheme.slate),
+                    style: const TextStyle(fontSize: 12, color: AppTheme.slate),
                   ),
                 ] else
                   const Text(
@@ -618,18 +666,25 @@ class _Step4SensorNotes extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: loadingLux ? null : onReadLux,
                     icon: const Icon(Icons.sensors),
-                    label: Text(luxReading == null
-                        ? 'Read Light Sensor'
-                        : 'Re-read Sensor'),
+                    label: Text(
+                      luxReading == null
+                          ? 'Read Light Sensor'
+                          : 'Re-read Sensor',
+                    ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppTheme.forestGreen,
-                      side:
-                          const BorderSide(color: AppTheme.forestGreen),
+                      side: const BorderSide(color: AppTheme.forestGreen),
                     ),
                   ),
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 20),
+          // Visibility
+          _VisibilitySelector(
+            value: visibility,
+            onChanged: onVisibilityChanged,
           ),
           const SizedBox(height: 20),
           // Notes
@@ -662,7 +717,9 @@ class _Step4SensorNotes extends StatelessWidget {
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : const Icon(Icons.verified_outlined),
               label: Text(saving ? 'Saving...' : 'Save Verified Log'),
@@ -725,23 +782,68 @@ class _StepWrapper extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                  Text(title, style: Theme.of(context).textTheme.titleMedium),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 6),
-          Text(
-            subtitle,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
+          Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 24),
           child,
         ],
       ),
+    );
+  }
+}
+
+class _VisibilitySelector extends StatelessWidget {
+  final String value;
+  final ValueChanged<String> onChanged;
+  const _VisibilitySelector({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.lock_outline, size: 16, color: AppTheme.slate),
+            const SizedBox(width: 6),
+            const Text(
+              'Who can see this log?',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        SegmentedButton<String>(
+          segments: const [
+            ButtonSegment(
+              value: 'private',
+              label: Text('Private'),
+              icon: Icon(Icons.lock_outline, size: 16),
+            ),
+            ButtonSegment(
+              value: 'public',
+              label: Text('Public'),
+              icon: Icon(Icons.public_rounded, size: 16),
+            ),
+          ],
+          selected: {value},
+          onSelectionChanged: (s) => onChanged(s.first),
+          style: SegmentedButton.styleFrom(
+            selectedBackgroundColor: AppTheme.forestGreen,
+            selectedForegroundColor: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Public posts hide GPS/location names, but your photo and notes are shared. Keep sensitive details out.',
+          style: TextStyle(fontSize: 12, color: AppTheme.slate, height: 1.35),
+        ),
+      ],
     );
   }
 }
@@ -751,11 +853,7 @@ class _NextButton extends StatelessWidget {
   final String label;
   final String? secondary;
 
-  const _NextButton({
-    required this.onTap,
-    required this.label,
-    this.secondary,
-  });
+  const _NextButton({required this.onTap, required this.label, this.secondary});
 
   @override
   Widget build(BuildContext context) {

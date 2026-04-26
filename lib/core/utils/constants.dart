@@ -13,7 +13,7 @@ abstract final class AppConstants {
   // Notifications
   static const int notifSavedId = 1001;
   static const String notifChannelId = 'adventure_logger_main';
-  static const String notifChannelName = 'Adventure Logger';
+  static const String notifChannelName = 'AdventureLog';
   static const String notifChannelDesc = 'Log save confirmations and alerts';
 
   // Misc

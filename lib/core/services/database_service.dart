@@ -20,7 +20,7 @@ class DatabaseService {
 
     return openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -39,18 +39,22 @@ class DatabaseService {
         longitude     REAL,
         location_name TEXT,
         lux_reading   REAL,
-        created_at    TEXT NOT NULL
+        created_at    TEXT NOT NULL,
+        visibility    TEXT NOT NULL DEFAULT 'private'
       )
     ''');
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
-      // Add new columns to existing table
       await db.execute(
           'ALTER TABLE ${AppConstants.tableLog} ADD COLUMN firestore_id TEXT');
       await db.execute(
-          'ALTER TABLE ${AppConstants.tableLog} ADD COLUMN user_id TEXT NOT NULL DEFAULT \'\'');
+          "ALTER TABLE ${AppConstants.tableLog} ADD COLUMN user_id TEXT NOT NULL DEFAULT ''");
+    }
+    if (oldVersion < 3) {
+      await db.execute(
+          "ALTER TABLE ${AppConstants.tableLog} ADD COLUMN visibility TEXT NOT NULL DEFAULT 'private'");
     }
   }
 

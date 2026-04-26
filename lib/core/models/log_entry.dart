@@ -10,6 +10,8 @@ class LogEntry {
   final String? locationName;
   final double? luxReading;
   final DateTime createdAt;
+  // 'private' | 'public'
+  final String visibility;
 
   const LogEntry({
     this.id,
@@ -23,6 +25,7 @@ class LogEntry {
     this.locationName,
     this.luxReading,
     required this.createdAt,
+    this.visibility = 'private',
   });
 
   // ── SQLite ────────────────────────────────────────────────────────────────
@@ -39,6 +42,7 @@ class LogEntry {
         'location_name': locationName,
         'lux_reading': luxReading,
         'created_at': createdAt.toIso8601String(),
+        'visibility': visibility,
       };
 
   factory LogEntry.fromMap(Map<String, dynamic> map) => LogEntry(
@@ -53,6 +57,7 @@ class LogEntry {
         locationName: map['location_name'] as String?,
         luxReading: map['lux_reading'] as double?,
         createdAt: DateTime.parse(map['created_at'] as String),
+        visibility: map['visibility'] as String? ?? 'private',
       );
 
   // ── Firestore ─────────────────────────────────────────────────────────────
@@ -67,6 +72,7 @@ class LogEntry {
         'location_name': locationName,
         'lux_reading': luxReading,
         'created_at': createdAt.toIso8601String(),
+        'visibility': visibility,
       };
 
   factory LogEntry.fromFirestore(
@@ -86,6 +92,7 @@ class LogEntry {
         createdAt: data['created_at'] != null
             ? DateTime.parse(data['created_at'] as String)
             : DateTime.now(),
+        visibility: data['visibility'] as String? ?? 'private',
       );
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -103,6 +110,7 @@ class LogEntry {
     String? locationName,
     double? luxReading,
     DateTime? createdAt,
+    String? visibility,
   }) =>
       LogEntry(
         id: id ?? this.id,
@@ -116,6 +124,7 @@ class LogEntry {
         locationName: locationName ?? this.locationName,
         luxReading: luxReading ?? this.luxReading,
         createdAt: createdAt ?? this.createdAt,
+        visibility: visibility ?? this.visibility,
       );
 
   String get ttsText {

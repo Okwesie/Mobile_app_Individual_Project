@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:adventure_logger/core/services/auth_service.dart';
 import 'package:adventure_logger/core/utils/app_router.dart';
 import 'package:adventure_logger/core/utils/app_theme.dart';
 
@@ -51,16 +50,9 @@ class _SplashScreenState extends State<SplashScreen>
       return;
     }
 
-    // User is logged in — require biometric to unlock session
-    final bioOk = await AuthService.instance.authenticate();
-    if (!mounted) return;
-
-    if (bioOk) {
-      Navigator.pushReplacementNamed(context, AppRouter.shell);
-    } else {
-      // Biometric failed — send to login (they can re-authenticate with Firebase)
-      Navigator.pushReplacementNamed(context, AppRouter.login);
-    }
+    // User is already authenticated via Firebase — go straight to shell.
+    // No biometric gate on launch; Firebase token persists across restarts.
+    if (mounted) Navigator.pushReplacementNamed(context, AppRouter.shell);
   }
 
   @override
@@ -103,7 +95,7 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                     const SizedBox(height: 32),
                     const Text(
-                      'Adventure Logger',
+                      'AdventureLog',
                       style: TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.w800,

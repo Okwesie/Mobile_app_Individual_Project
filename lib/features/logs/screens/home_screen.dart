@@ -21,15 +21,6 @@ class _HomeScreenState extends State<HomeScreen> {
   String _search = '';
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final uid = context.read<AuthProvider>().user?.uid;
-      context.read<LogProvider>().setUser(uid);
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final logProv = context.watch<LogProvider>();
@@ -75,21 +66,20 @@ class _HomeScreenState extends State<HomeScreen> {
               child: logProv.loading
                   ? const Center(child: CircularProgressIndicator())
                   : filtered.isEmpty
-                      ? _EmptyState(hasSearch: _search.isNotEmpty)
-                      : RefreshIndicator(
-                          onRefresh: () {
-                            final provider = context.read<LogProvider>();
-                            return provider.loadLogs();
-                          },
-                          color: AppTheme.forestGreen,
-                          child: ListView.builder(
-                            padding:
-                                const EdgeInsets.only(top: 8, bottom: 100),
-                            itemCount: filtered.length,
-                            itemBuilder: (context, i) =>
-                                _LogCard(entry: filtered[i]),
-                          ),
-                        ),
+                  ? _EmptyState(hasSearch: _search.isNotEmpty)
+                  : RefreshIndicator(
+                      onRefresh: () {
+                        final provider = context.read<LogProvider>();
+                        return provider.loadLogs();
+                      },
+                      color: AppTheme.forestGreen,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.only(top: 8, bottom: 100),
+                        itemCount: filtered.length,
+                        itemBuilder: (context, i) =>
+                            _LogCard(entry: filtered[i]),
+                      ),
+                    ),
             ),
           ],
         ),
@@ -117,8 +107,7 @@ class _AppHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name =
-        (user?.displayName as String?)?.split(' ').first ?? 'Explorer';
+    final name = (user?.displayName as String?)?.split(' ').first ?? 'Explorer';
     final photoUrl = user?.photoURL as String?;
 
     return SliverAppBar(
@@ -129,7 +118,7 @@ class _AppHeader extends StatelessWidget {
       backgroundColor: AppTheme.deepGreen,
       // Title only shown when AppBar is collapsed
       title: Text(
-        'My Logs ($logCount)',
+        'My Logs',
         style: const TextStyle(
           color: Colors.white,
           fontSize: 18,
@@ -140,8 +129,7 @@ class _AppHeader extends StatelessWidget {
         // No title here — prevents the double-render overlap
         collapseMode: CollapseMode.pin,
         background: Container(
-          decoration:
-              const BoxDecoration(gradient: AppTheme.headerGradient),
+          decoration: const BoxDecoration(gradient: AppTheme.headerGradient),
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -263,11 +251,14 @@ class _LogCard extends StatelessWidget {
           children: const [
             Icon(Icons.delete_outline, color: Colors.white, size: 26),
             SizedBox(height: 4),
-            Text('Delete',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600)),
+            Text(
+              'Delete',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
       ),
@@ -283,8 +274,7 @@ class _LogCard extends StatelessWidget {
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              style: TextButton.styleFrom(
-                  foregroundColor: Colors.red.shade700),
+              style: TextButton.styleFrom(foregroundColor: Colors.red.shade700),
               child: const Text('Delete'),
             ),
           ],
@@ -292,9 +282,9 @@ class _LogCard extends StatelessWidget {
       ),
       onDismissed: (_) {
         context.read<LogProvider>().deleteLog(entry);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('"${entry.title}" deleted.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('"${entry.title}" deleted.')));
       },
       child: Card(
         child: InkWell(
@@ -325,14 +315,16 @@ class _LogCard extends StatelessWidget {
                       if (entry.locationName?.isNotEmpty == true)
                         Row(
                           children: [
-                            const Icon(Icons.location_on_outlined,
-                                size: 13, color: AppTheme.slate),
+                            const Icon(
+                              Icons.location_on_outlined,
+                              size: 13,
+                              color: AppTheme.slate,
+                            ),
                             const SizedBox(width: 3),
                             Expanded(
                               child: Text(
                                 entry.locationName!,
-                                style:
-                                    Theme.of(context).textTheme.bodySmall,
+                                style: Theme.of(context).textTheme.bodySmall,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -342,15 +334,17 @@ class _LogCard extends StatelessWidget {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          Icon(Icons.access_time_rounded,
-                              size: 12, color: Colors.grey.shade500),
+                          Icon(
+                            Icons.access_time_rounded,
+                            size: 12,
+                            color: Colors.grey.shade500,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             df.format(entry.createdAt),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(fontSize: 11),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(fontSize: 11),
                           ),
                           const Spacer(),
                           if (entry.luxReading != null)
@@ -360,8 +354,11 @@ class _LogCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                const Icon(Icons.chevron_right,
-                    color: AppTheme.slate, size: 20),
+                const Icon(
+                  Icons.chevron_right,
+                  color: AppTheme.slate,
+                  size: 20,
+                ),
               ],
             ),
           ),
@@ -382,8 +379,12 @@ class _Thumbnail extends StatelessWidget {
     if (path != null && File(path!).existsSync()) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(10),
-        child: Image.file(File(path!),
-            width: 68, height: 68, fit: BoxFit.cover),
+        child: Image.file(
+          File(path!),
+          width: 68,
+          height: 68,
+          fit: BoxFit.cover,
+        ),
       );
     }
     return Container(
@@ -393,8 +394,7 @@ class _Thumbnail extends StatelessWidget {
         color: const Color(0xFFE8F0E0),
         borderRadius: BorderRadius.circular(10),
       ),
-      child:
-          const Icon(Icons.terrain_rounded, color: AppTheme.slate, size: 30),
+      child: const Icon(Icons.terrain_rounded, color: AppTheme.slate, size: 30),
     );
   }
 }
@@ -429,20 +429,18 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               hasSearch ? 'No results found' : 'No logs yet',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineMedium
-                  ?.copyWith(color: AppTheme.slate),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineMedium?.copyWith(color: AppTheme.slate),
             ),
             const SizedBox(height: 10),
             Text(
               hasSearch
                   ? 'Try a different search term.'
                   : 'Tap + New Log to create your first Verified Log.',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: Colors.grey.shade500),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade500),
               textAlign: TextAlign.center,
             ),
           ],
