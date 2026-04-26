@@ -45,3 +45,8 @@ app.*.map.json
 /android/app/release
 # Root Android project build (e.g. Gradle problem reports) — not app output
 android/build/
+
+# Firebase — never commit (API keys trigger GitHub secret scanning; use FlutterFire locally)
+lib/firebase_options.dart
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
